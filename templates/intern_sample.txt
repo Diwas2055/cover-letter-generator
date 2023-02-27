@@ -1,0 +1,14 @@
+Dear HR Manager,
+
+I hope this email finds you well. My name is ${YOUR_NAME} and I am writing to express my interest in the internship program offered by ${COMPANY_NAME}. I am currently a ${STATUS} pursuing ${STUDY_FIELD} at ${UNIVERSITY_NAME}.
+
+I have been following ${COMPANY_NAME} for quite some time now and I am highly impressed by the work culture, projects, and values that the company embodies.
+
+I am eager to apply the knowledge and skills I have gained in the classroom to real-world situations and to learn from the talented professionals at ${COMPANY_NAME}.
+
+Thank you for considering my application. I look forward to the opportunity to discuss my application further and would be happy to provide additional information or references upon request.
+
+I appreciate your time and consideration.
+
+Sincerely,
+${YOUR_NAME}

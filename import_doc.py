@@ -15,7 +15,8 @@ def main(
     job_title,
     company_name,
 ):
-    shutil.rmtree(root_path + "/data/")
+    if os.path.isdir(root_path + "/data/"):
+        shutil.rmtree(root_path + "/data/")
     if os.path.isdir(output_dir):
         pass
     else:
@@ -103,6 +104,25 @@ def doc2pdf_linux(doc, output_path):
     stdout, stderr = p.communicate()
     if stderr:
         raise subprocess.SubprocessError(stderr)
+
+
+def read_file(filename):
+    file_path = root_path + "/templates/" + filename
+    with open(file_path, "r") as file:
+        # Read the contents of the file
+        file_contents = file.read()
+    return file_contents
+
+
+def get_internship_template(data: dict):
+    file_contents = read_file("intern_sample.txt")
+    file_contents = file_contents.replace("${YOUR_NAME}", data["name"])
+    file_contents = file_contents.replace("${COMPANY_NAME}", data["company"])
+    file_contents = file_contents.replace("${STATUS}", data["status"])
+    file_contents = file_contents.replace("${STUDY_FIELD}", data["study_field"])
+    file_contents = file_contents.replace("${UNIVERSITY_NAME}", data["university_name"])
+
+    return file_contents
 
 
 # define Python user-defined exceptions

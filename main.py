@@ -1,12 +1,17 @@
 from fastapi import FastAPI, File, Form
 from fastapi.responses import HTMLResponse
-from import_doc import main as doc_main
+from import_doc import main as doc_main, get_internship_template
 from starlette.responses import FileResponse
+from jinja2 import Environment, FileSystemLoader
+
+
+# Create a Jinja2 environment with the path to your templates directory
+env = Environment(loader=FileSystemLoader("templates"))
 
 app = FastAPI()
 
 
-@app.post("/download/")
+@app.post("/download")
 async def download_file(
     job_title: str = Form(),
     company_name: str = Form(),
@@ -24,9 +29,41 @@ async def download_file(
     )
 
 
+@app.post("/download/internship")
+async def download_file(
+    your_name: str = Form(),
+    company_name: str = Form(),
+    status: str = Form(),
+    study_field: str = Form(),
+    university_name: str = Form(),
+):
+    data: dict = {
+        "name": str(your_name),
+        "company": str(company_name),
+        "status": str(status),
+        "study_field": str(study_field),
+        "university_name": str(university_name),
+    }
+    file_contents = get_internship_template(data)
+
+    # Render the template with the dynamic data and message variable
+    template = env.get_template("mail_templates.html")
+    html_content = template.render(message=file_contents)
+
+    # Return the rendered HTML content
+    return HTMLResponse(content=html_content, status_code=200)
+
+
 @app.get("/")
 async def main():
-    return HTMLResponse(content=open("templates/form.html").read())
+    return HTMLResponse(content=open("templates/form.html").read(), status_code=200)
+
+
+@app.get("/internship")
+async def main():
+    return HTMLResponse(
+        content=open("templates/internship.html").read(), status_code=200
+    )
 
 
 if __name__ == "__main__":
