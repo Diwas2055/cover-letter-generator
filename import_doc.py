@@ -49,6 +49,7 @@ def main(
         template_document.save(output_file_path)
         doc2pdf(output_file_path)
         if os.path.exists(output_file_path):
+            os.remove(output_file_path)
             return {
                 "file_location": output_dir + f"{user_name}-cover_letter.pdf",
                 "file_name": f"{user_name}-cover_letter.pdf",

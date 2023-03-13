@@ -17,9 +17,9 @@ async def download_file(
     company_name: str = Form(),
     your_name: str = Form(),
 ):
-    name = str(your_name)
-    _job_title = str(job_title)
-    company = str(company_name)
+    name = str(your_name).capitalize()
+    _job_title = str(job_title).capitalize()
+    company = str(company_name).capitalize()
     import_data = doc_main(name, _job_title, company)
 
     return FileResponse(
