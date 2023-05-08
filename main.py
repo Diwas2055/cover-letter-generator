@@ -80,24 +80,24 @@ async def download_file(
     your_name: str = Form(),
     background_tasks: BackgroundTasks = BackgroundTasks(),
 ):
-    try:
-        name = str(your_name).title()
-        _job_title = str(job_title).title()
-        company = str(company_name).title()
-        import_data = doc_main(name, _job_title, company)
+    # try:
+    name = str(your_name).title()
+    _job_title = str(job_title).title()
+    company = str(company_name).title()
+    import_data = doc_main(name, _job_title, company)
 
-        background_tasks.add_task(delete_file, import_data["file_location"])
-        
-        return FileResponse(
-            path=import_data["file_location"],
-            media_type="application/octet-stream",
-            filename=import_data["file_name"],
-        )
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=json.dumps(e,cls=CustomJSONEncoder),
-        )
+    background_tasks.add_task(delete_file, import_data["file_location"])
+    
+    return FileResponse(
+        path=import_data["file_location"],
+        media_type="application/octet-stream",
+        filename=import_data["file_name"],
+    )
+    # except Exception as e:
+    #     raise HTTPException(
+    #         status_code=500,
+    #         detail=json.dumps(e,cls=CustomJSONEncoder),
+    #     )
 
 
 @app.post("/download/internship")
