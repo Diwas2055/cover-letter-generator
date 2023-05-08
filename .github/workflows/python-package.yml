@@ -25,6 +25,9 @@ jobs:
       uses: actions/setup-python@v3
       with:
         python-version: ${{ matrix.python-version }}
+    - name: Install LibreOffice
+      run: |
+        sudo apt-get install libreoffice 
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
