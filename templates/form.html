@@ -191,13 +191,13 @@
 
                                 <div class="col-md-12">
                                     <input class="form-control" type="text" name="your_name" placeholder="Full Name"
-                                        required>
+                                        pattern="^[A-Za-z\s]+$" required>
                                     <div class="valid-feedback">Name field is valid!</div>
                                     <div class="invalid-feedback">Name field cannot be blank!</div>
                                 </div>
                                 <div class="col-md-12">
                                     <input class="form-control" type="text" name="company_name"
-                                        placeholder="Company Name" required>
+                                        placeholder="Company Name" pattern="^[A-Za-z\s]+$" required>
                                     <div class="valid-feedback">Company Name field is valid!</div>
                                     <div class="invalid-feedback">Company Name field cannot be blank!</div>
                                 </div>

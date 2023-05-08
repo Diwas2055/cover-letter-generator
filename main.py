@@ -1,4 +1,5 @@
 import os
+import json
 from fastapi import FastAPI, Form, Request, HTTPException, BackgroundTasks
 from fastapi.responses import HTMLResponse
 from import_doc import main as doc_main, get_internship_template
@@ -15,6 +16,11 @@ env = Environment(loader=FileSystemLoader("templates"))
 class Settings(BaseSettings):
     openapi_url: str = "/api/v1/openapi.json"
 
+class CustomJSONEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, Exception):
+            return str(obj)
+        return super().default(obj)
 
 settings = Settings()
 
@@ -75,13 +81,13 @@ async def download_file(
     background_tasks: BackgroundTasks = BackgroundTasks(),
 ):
     try:
-        name = str(your_name).capitalize()
-        _job_title = str(job_title).capitalize()
-        company = str(company_name).capitalize()
+        name = str(your_name).title()
+        _job_title = str(job_title).title()
+        company = str(company_name).title()
         import_data = doc_main(name, _job_title, company)
 
         background_tasks.add_task(delete_file, import_data["file_location"])
-
+        
         return FileResponse(
             path=import_data["file_location"],
             media_type="application/octet-stream",
@@ -90,7 +96,7 @@ async def download_file(
     except Exception as e:
         raise HTTPException(
             status_code=500,
-            detail="Internal server error",
+            detail=json.dumps(e,cls=CustomJSONEncoder),
         )
 
 
@@ -123,6 +129,9 @@ async def download_file(
 async def main():
     return HTMLResponse(content=open("templates/form.html").read(), status_code=200)
 
+@app.get("/ping")
+def pong():
+    return {"ping": "pong!"}
 
 @app.get("/internship")
 async def main():
@@ -134,4 +143,4 @@ async def main():
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run("main:app", port=9000, reload=True)
+    uvicorn.run("main:app", port=9000,reload=True)
