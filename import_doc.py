@@ -11,50 +11,58 @@ output_dir = root_path + "/data/pdf/"
 
 
 def main(
-    user_name,
-    job_title,
-    company_name,
+    user_name:str,
+    job_title:str,
+    company_name:str,
 ):
-    shutil.rmtree(root_path + "/data/")
+    if os.path.isdir(root_path + "/data/"):
+        shutil.rmtree(root_path + "/data/")
     if os.path.isdir(output_dir):
         pass
     else:
         os.makedirs(output_dir)
-    template_file_path = folder_path + f"{job_title.lower()}_cover_letter.docx"
-    output_file_path = root_path + "/data/" + f"{user_name}-cover_letter.docx"
 
-    current_date = datetime.now().strftime("%d %B, %Y")
+    user_name=user_name.title()
+    files = [f for f in os.listdir(folder_path)]
+    available_job_title = [file.split("_")[0] for file in files]
+    if job_title.lower() in available_job_title:
+        template_file_path = folder_path + f"{job_title.lower()}_cover_letter.docx"
+        output_file_path = root_path + "/data/" + f"{user_name}-cover_letter.docx"
 
-    variables = {
-        "${DATE}": current_date,
-        "${JOB_TITLE}": job_title + "Developer",
-        "${COMPANY_NAME}": company_name,
-        "${YOUR_NAME}": user_name,
-    }
-    template_document = Document(template_file_path)
-    try:
-        for variable_key, variable_value in variables.items():
-            for paragraph in template_document.paragraphs:
-                replace_text_in_paragraph(paragraph, variable_key, variable_value)
+        current_date = datetime.now().strftime("%d %B, %Y")
 
-            for table in template_document.tables:
-                for col in table.columns:
-                    for cell in col.cells:
-                        for paragraph in cell.paragraphs:
-                            replace_text_in_paragraph(
-                                paragraph, variable_key, variable_value
-                            )
+        variables = {
+            "${DATE}": current_date,
+            "${JOB_TITLE}": job_title + "Developer",
+            "${COMPANY_NAME}": company_name,
+            "${YOUR_NAME}": user_name,
+        }
+        template_document = Document(template_file_path)
+        try:
+            for variable_key, variable_value in variables.items():
+                for paragraph in template_document.paragraphs:
+                    replace_text_in_paragraph(paragraph, variable_key, variable_value)
 
-        template_document.save(output_file_path)
-        doc2pdf(output_file_path)
-        if os.path.exists(output_file_path):
-            os.remove(output_file_path)
-            return {
-                "file_location": output_dir + f"{user_name}-cover_letter.pdf",
-                "file_name": f"{user_name}-cover_letter.pdf",
-            }
-    except Exception as e:
-        raise e
+                for table in template_document.tables:
+                    for col in table.columns:
+                        for cell in col.cells:
+                            for paragraph in cell.paragraphs:
+                                replace_text_in_paragraph(
+                                    paragraph, variable_key, variable_value
+                                )
+
+            template_document.save(output_file_path)
+            doc2pdf(output_file_path)
+            if os.path.exists(output_file_path):
+                os.remove(output_file_path)
+                return {
+                    "file_location": output_dir + f"{user_name}-cover_letter.pdf",
+                    "file_name": f"{user_name}-cover_letter.pdf",
+                }
+        except Exception as e:
+            raise e
+    else:
+        raise Exception(f"Job Title {job_title} not found.Available Job Title are {available_job_title}")
 
 
 def replace_text_in_paragraph(paragraph, key, value):
@@ -104,6 +112,25 @@ def doc2pdf_linux(doc, output_path):
     stdout, stderr = p.communicate()
     if stderr:
         raise subprocess.SubprocessError(stderr)
+
+
+def read_file(filename):
+    file_path = root_path + "/templates/" + filename
+    with open(file_path, "r") as file:
+        # Read the contents of the file
+        file_contents = file.read()
+    return file_contents
+
+
+def get_internship_template(data: dict):
+    file_contents = read_file("intern_sample.txt")
+    file_contents = file_contents.replace("${YOUR_NAME}", data["name"])
+    file_contents = file_contents.replace("${COMPANY_NAME}", data["company"])
+    file_contents = file_contents.replace("${STATUS}", data["status"])
+    file_contents = file_contents.replace("${STUDY_FIELD}", data["study_field"])
+    file_contents = file_contents.replace("${UNIVERSITY_NAME}", data["university_name"])
+
+    return file_contents
 
 
 # define Python user-defined exceptions

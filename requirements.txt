@@ -5,3 +5,8 @@ black
 python-docx==0.8.11
 aspose-words==22.12.0
 comtypes==1.1.14
+
+
+# dev
+pytest==7.2.0
+httpx==0.23.1

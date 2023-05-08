@@ -28,3 +28,27 @@ sudo apt-get install -y libreoffice libreoffice-writer
 sudo apt-get install -y unoconv
 sudo sed -i "s|#!/usr/bin/env python3|#!/usr/bin/python3 |g" /usr/bin/unoconv
 ```
+
+## Note:- Local application into public url using localtunnel
+> Check if npm is installed
+```bash
+npm -v
+```
+> If not installed, install npm
+```bash
+sudo apt install npm
+```
+> Install localtunnel
+```bash
+npm install -g localtunnel
+```
+> Run the application
+```bash
+python main.py
+```
+> Run localtunnel
+```bash
+lt --port 9000 --subdomain <subdomain> # e.g lt --port 9000 --subdomain coverLetter
+```
+- where 9000 is the port number of the application
+- where <subdomain> is the subdomain of the application

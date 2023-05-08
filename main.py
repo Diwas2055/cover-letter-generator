@@ -1,8 +1,53 @@
-from fastapi import FastAPI, File, Form, Request
+import os
+import json
+from fastapi import FastAPI, Form, Request, HTTPException, BackgroundTasks
 from fastapi.responses import HTMLResponse
-from import_doc import main as doc_main
+from import_doc import main as doc_main, get_internship_template
 from starlette.responses import FileResponse
+from jinja2 import Environment, FileSystemLoader
 from fastapi.responses import JSONResponse
+
+from pydantic import BaseSettings
+
+# Create a Jinja2 environment with the path to your templates directory
+env = Environment(loader=FileSystemLoader("templates"))
+
+
+class Settings(BaseSettings):
+    openapi_url: str = "/api/v1/openapi.json"
+
+class CustomJSONEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, Exception):
+            return str(obj)
+        return super().default(obj)
+
+settings = Settings()
+
+
+description = """
+Cover Letter Generator helps us to genartor cover letter for . 🚀
+"""
+
+
+app = FastAPI(
+    title="Cover Letter Generator",
+    description=description,
+    # version="0.0.1",
+    terms_of_service="http://example.com/terms/",
+    # contact={
+    #     "name": "Deadpoolio the Amazing",
+    #     "url": "http://x-force.example.com/contact/",
+    #     "email": "dp@x-force.example.com",
+    # },
+    license_info={
+        "name": "Apache 2.0",
+        "url": "https://www.apache.org/licenses/LICENSE-2.0.html",
+    },
+    docs_url="/documentation",
+    redoc_url=None,
+    openapi_url=settings.openapi_url,
+)
 
 app = FastAPI()
 
@@ -21,30 +66,81 @@ async def verify_user_agent(request: Request, call_next):
         )
 
 
-@app.post("/download/")
+def delete_file(file_path: str):
+    if os.path.exists(file_path):
+        os.remove(file_path)
+    else:
+        raise RuntimeError(f"File at path {file_path} does not exist.")
+
+
+@app.post("/download")
 async def download_file(
     job_title: str = Form(),
     company_name: str = Form(),
     your_name: str = Form(),
+    background_tasks: BackgroundTasks = BackgroundTasks(),
 ):
-    name = str(your_name)
-    _job_title = str(job_title)
-    company = str(company_name)
-    import_data = doc_main(name, _job_title, company)
+    try:
+        name = str(your_name).title()
+        _job_title = str(job_title).title()
+        company = str(company_name).title()
+        import_data = doc_main(name, _job_title, company)
 
-    return FileResponse(
-        import_data["file_location"],
-        media_type="application/octet-stream",
-        filename=import_data["file_name"],
-    )
+        background_tasks.add_task(delete_file, import_data["file_location"])
+        
+        return FileResponse(
+            path=import_data["file_location"],
+            media_type="application/octet-stream",
+            filename=import_data["file_name"],
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=json.dumps(e,cls=CustomJSONEncoder),
+        )
+
+
+@app.post("/download/internship")
+async def download_file(
+    your_name: str = Form(),
+    company_name: str = Form(),
+    status: str = Form(),
+    study_field: str = Form(),
+    university_name: str = Form(),
+):
+    data: dict = {
+        "name": str(your_name),
+        "company": str(company_name),
+        "status": str(status),
+        "study_field": str(study_field),
+        "university_name": str(university_name),
+    }
+    file_contents = get_internship_template(data)
+
+    # Render the template with the dynamic data and message variable
+    template = env.get_template("mail_templates.html")
+    html_content = template.render(message=file_contents)
+
+    # Return the rendered HTML content
+    return HTMLResponse(content=html_content, status_code=200)
 
 
 @app.get("/")
 async def main():
-    return HTMLResponse(content=open("templates/form.html").read())
+    return HTMLResponse(content=open("templates/form.html").read(), status_code=200)
+
+@app.get("/ping")
+def pong():
+    return {"ping": "pong!"}
+
+@app.get("/internship")
+async def main():
+    return HTMLResponse(
+        content=open("templates/internship.html").read(), status_code=200
+    )
 
 
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run("main:app", port=9000, reload=True)
+    uvicorn.run("main:app", port=9000,reload=True)
