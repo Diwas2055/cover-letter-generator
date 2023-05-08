@@ -1,23 +1,25 @@
-from fastapi import FastAPI, File, Form
+from fastapi import FastAPI, File, Form, Request
 from fastapi.responses import HTMLResponse
 from import_doc import main as doc_main
 from starlette.responses import FileResponse
+from fastapi.responses import JSONResponse
 
 app = FastAPI()
+
 
 # Custom Middleware
 # To create a middleware you use the decorator @app.middleware("http") on top of a function
 @app.middleware("http")
 async def verify_user_agent(request: Request, call_next):
     if request.headers["User-Agent"].find("Mobile") == -1:
-
         # function 'call_next' that will receive the 'request' as a parameter
         response = await call_next(request)
         return response
     else:
         return JSONResponse(
-            content={"message": "we do not allow mobiles"}, status_code=401
+            content={"message": "We do not allow mobiles"}, status_code=401
         )
+
 
 @app.post("/download/")
 async def download_file(
